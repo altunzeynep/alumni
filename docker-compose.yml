@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  api_service:
+    build: .
+    container_name: alumni_core_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PROJECT_TITLE=Alumni Management Core
+      - DB_CONNECTION=postgresql://zeynep_user:secure_pass@database_node:5432/alumni_main_db
+    volumes:
+      - .:/workspace
+    depends_on:
+      database_node:
+        condition: service_healthy
+
+  database_node:
+    image: postgres:16-alpine
+    container_name: alumni_postgres_node
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zeynep_user
+      POSTGRES_PASSWORD: secure_pass
+      POSTGRES_DB: alumni_main_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zeynep_user -d alumni_main_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data_storage:
