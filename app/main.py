@@ -95,3 +95,16 @@ def purge_graduate(user_id: int):
         raise HTTPException(status_code=404, detail="Graduate record not found.")
     graduates_registry.remove(match)
     return None
+
+from fastapi import FastAPI
+from app.controllers import router
+
+app = FastAPI(
+    title="Zeynep Altun - Alumni Tracking MVC API",
+    version="4.0.0",
+    docs_url="/api/swagger",
+    redoc_url=None
+)
+
+# Controller router'ını uygulamaya dahil ediyoruz (MVC Pattern)
+app.include_router(router)
