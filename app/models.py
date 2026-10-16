@@ -1,13 +1,29 @@
-from pydantic import BaseModel, EmailStr
+from sqlalchemy import Column, Integer, String
+from app.database import Base
+from pydantic import BaseModel
 from typing import Optional
 
-class GraduateProfile(BaseModel):
-    full_name: str
-    contact_email: EmailStr
+class Graduate(Base):
+    __tablename__ = "graduates"
+    __table_args__ = {'extend_existing': True}
 
-class GraduateInput(GraduateProfile):
-    pass
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String, index=True)
+    email = Column(String, unique=True, index=True)
+    graduation_year = Column(Integer)
+
+class GraduateInput(BaseModel):
+    full_name: str
+    email: str
+    graduation_year: int
 
 class GraduatePartialUpdate(BaseModel):
     full_name: Optional[str] = None
-    contact_email: Optional[EmailStr] = None
+    email: Optional[str] = None
+    graduation_year: Optional[int] = None
+
+class GraduateProfile(GraduateInput):
+    id: int
+
+    class Config:
+        from_attributes = True

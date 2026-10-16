@@ -1,5 +1,14 @@
-# In-memory veritabanı simülasyonu (Hafta 5 ve 6'daki ORM geçişine hazırlık)
-graduates_registry = [
-    {"id": 101, "full_name": "Zeynep Altun", "contact_email": "zeynep.altun@std.edu.tr"},
-    {"id": 102, "full_name": "Ahmet Demir", "contact_email": "ahmet.demir@example.com"}
-]
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+# Veritabanı URL'si (.env'den veya varsayılan olarak)
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:password@postgres:5432/alumni_db")
+# Engine tanımı (Eksik olan kısım burası!)
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
+# SessionLocal tanımı
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()

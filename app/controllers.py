@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List
 from app.models import GraduateInput, GraduatePartialUpdate, GraduateProfile
-from app.database import graduates_registry
+
 
 router = APIRouter()
 

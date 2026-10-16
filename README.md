@@ -1,4 +1,4 @@
-# İstanbul Üniversitesi Mezun Takip Sistemi
+İstanbul Üniversitesi Mezun Takip Sistemi
 
 ## Alumni Tracking System
 
@@ -72,3 +72,48 @@ Projeyi Docker ortamında ayağa kaldırmak için ana dizindeyken şu komutu ça
 Bash
 docker-compose up --build
 Uygulama ayağa kalktıktan sonra tarayıcınızdan http://localhost:8000/api/swagger adresini ziyaret edebilirsiniz.
+
+## Alumni Tracking System (MVC Architecture)
+
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python)](https://www.python.org/)
+[![MVC Pattern](https://img.shields.io/badge/Architecture-MVC-blue?style=flat)]()
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com/)
+
+Bu proje, **İstanbul Üniversitesi Web Programlama** dersi kapsamında geliştirilmekte olan **Mezun Takip Sistemi** (*Alumni Tracking System*) için hazırlanmıştır. 
+
+Hafta 4 gereksinimleri doğrultusunda proje **MVC (Model-View-Controller)** mimari desenine refaktör edilmiştir. Kod tabanı modüler katmanlara ayrılmış, sürdürülebilirlik ve ölçeklenebilirlik en üst düzeye çıkarılmıştır.
+
+---
+
+## 📌 İçindekiler
+1. [Proje Mimarisi (MVC)](#proje-mimarisi-mvc)
+2. [Proje Dizin Yapısı](#proje-dizin-yapısı)
+3. [Uç Noktalar (Endpoints)](#uç-noktalar-endpoints)
+4. [Kurulum ve Çalıştırma (Docker)](#kurulum-ve-çalıştırma-docker)
+
+---
+
+## 1. Proje Mimarisi (MVC)
+* **Model (`app/models.py`):** Veri şemalarını ve doğrulama kurallarını barındırır.
+* **Controller (`app/controllers.py`):** İş mantığını (business logic) ve HTTP istek rotalarını yönetir.
+* **Database (`app/database.py`):** Veri katmanını soyutlar ve sonraki haftalardaki ORM geçişine zemin hazırlar.
+
+## 2. Proje Dizin Yapısı
+```text
+alumni/
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models.py
+│   ├── controllers.py
+│   └── database.py
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
+└── requirements.txt
+
+## Documentation
+- Check out the [Data Design Documentation](./cdd.md) for database schemas and architecture details.
