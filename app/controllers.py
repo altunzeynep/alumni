@@ -72,3 +72,39 @@ def purge_graduate(user_id: int):
         raise HTTPException(status_code=404, detail="Graduate record not found.")
     graduates_registry.remove(match)
     return None
+
+
+from fastapi import Request, Depends
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app.models import Graduate, Announcement, GraduateInput, AnnouncementInput
+
+# HTML şablonları için klasör tanımı (proje kök dizininde templates/ klasörü olmalı)
+templates = Jinja2Templates(directory="templates")
+
+# --- WEB VIEWS (HTML Arayüzleri) ---
+@router.get("/web/graduates", response_class=HTMLResponse, tags=["Web Views"])
+def web_list_graduates(request: Request, db: Session = Depends(get_db)):
+    graduates = db.query(Graduate).all()
+    return templates.TemplateResponse("graduates.html", {"request": request, "graduates": graduates})
+
+@router.get("/web/announcements", response_class=HTMLResponse, tags=["Web Views"])
+def web_list_announcements(request: Request, db: Session = Depends(get_db)):
+    announcements = db.query(Announcement).all()
+    return templates.TemplateResponse("announcements.html", {"request": request, "announcements": announcements})
+
+
+# --- ANNOUNCEMENTS API (Duyurular Ödevi) ---
+@app_router.get("/api/announcements", response_class=List[AnnouncementProfile], tags=["Announcements"]) # Eğer router kullanıyorsan `@router` olarak ayarla
+def list_announcements(db: Session = Depends(get_db)):
+    return db.query(Announcement).all()
+
+@router.post("/api/announcements", status_code=201, tags=["Announcements"])
+def create_announcement(payload: AnnouncementInput, db: Session = Depends(get_db)):
+    new_announcement = Announcement(title=payload.title, content=payload.content)
+    db.add(new_announcement)
+    db.commit()
+    db.refresh(new_announcement)
+    return {"message": "Announcement created successfully", "data": new_announcement}

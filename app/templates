@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><title>Mezunlar</title></head>
+<body>
+    <h1>Mezun Listesi</h1>
+    <ul>
+        {% for g in graduates %}
+            <li>{{ g.full_name }} - {{ g.email }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html>
+<head><title>Duyurular</title></head>
+<body>
+    <h1>Duyurular</h1>
+    <ul>
+        {% for a in announcements %}
+            <li><strong>{{ a.title }}</strong>: {{ a.content }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

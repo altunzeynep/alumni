@@ -27,3 +27,23 @@ class GraduateProfile(GraduateInput):
 
     class Config:
         from_attributes = True
+
+
+        # Duyurular için model
+class Announcement(Base):
+    __tablename__ = "announcements"
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    content = Column(String)
+
+class AnnouncementInput(BaseModel):
+    title: str
+    content: str
+
+class AnnouncementProfile(AnnouncementInput):
+    id: int
+
+    class Config:
+        from_attributes = True
