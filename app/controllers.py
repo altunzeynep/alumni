@@ -1,11 +1,26 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Request, Depends
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 from typing import List
-from app.models import GraduateInput, GraduatePartialUpdate, GraduateProfile
 
+from app.database import get_db
+from app.models import (
+    Graduate, 
+    Announcement, 
+    GraduateInput, 
+    GraduatePartialUpdate, 
+    GraduateProfile, 
+    AnnouncementInput, 
+    AnnouncementProfile
+)
 
 router = APIRouter()
 
-# Hafta 2: Temel Rotalar
+# HTML Şablon Motoru Tanımı
+templates = Jinja2Templates(directory="templates")
+
+# --- Hafta 2: Temel Rotalar ---
 @router.get("/", tags=["System Status"])
 def health_check():
     return {"status": "Online", "architecture": "MVC Pattern Active", "system": "Alumni Tracking System"}
@@ -26,63 +41,60 @@ def compute_sum(a: int, b: int):
 def project_manifesto():
     return {"module": "Web Programming", "pattern": "MVC", "author": "Zeynep Altun"}
 
-# Hafta 3 & 4: /api/users CRUD Operasyonları (MVC Controller Yapısıyla)
+
+# --- Hafta 3 & 4: Gerçek Veritabanı Üzerinden Mezunlar (Graduates) CRUD Operasyonları ---
 @router.get("/api/users", response_model=List[GraduateProfile], tags=["User Management"])
-def list_graduates():
-    return graduates_registry
+def list_graduates(db: Session = Depends(get_db)):
+    return db.query(Graduate).all()
 
 @router.get("/api/users/{user_id}", response_model=GraduateProfile, tags=["User Management"])
-def fetch_graduate(user_id: int):
-    match = next((item for item in graduates_registry if item["id"] == user_id), None)
+def fetch_graduate(user_id: int, db: Session = Depends(get_db)):
+    match = db.query(Graduate).filter(Graduate.id == user_id).first()
     if not match:
         raise HTTPException(status_code=404, detail="Graduate record not found.")
     return match
 
 @router.post("/api/users", status_code=status.HTTP_201_CREATED, tags=["User Management"])
-def register_graduate(payload: GraduateInput):
-    new_id = max([item["id"] for item in graduates_registry], default=100) + 1
-    record = {"id": new_id, "full_name": payload.full_name, "contact_email": payload.contact_email}
-    graduates_registry.append(record)
-    return {"id": new_id, "message": "Successfully registered via MVC Controller", "data": record}
+def register_graduate(payload: GraduateInput, db: Session = Depends(get_db)):
+    new_record = Graduate(full_name=payload.full_name, contact_email=payload.contact_email)
+    db.add(new_record)
+    db.commit()
+    db.refresh(new_record)
+    return {"message": "Successfully registered via DB Controller", "data": new_record}
 
 @router.put("/api/users/{user_id}", tags=["User Management"])
-def overwrite_graduate(user_id: int, payload: GraduateInput):
-    match = next((item for item in graduates_registry if item["id"] == user_id), None)
+def overwrite_graduate(user_id: int, payload: GraduateInput, db: Session = Depends(get_db)):
+    match = db.query(Graduate).filter(Graduate.id == user_id).first()
     if not match:
         raise HTTPException(status_code=404, detail="Graduate record not found.")
-    match["full_name"] = payload.full_name
-    match["contact_email"] = payload.contact_email
+    match.full_name = payload.full_name
+    match.contact_email = payload.contact_email
+    db.commit()
+    db.refresh(match)
     return {"message": "Record fully updated (PUT)", "data": match}
 
 @router.patch("/api/users/{user_id}", tags=["User Management"])
-def modify_graduate(user_id: int, payload: GraduatePartialUpdate):
-    match = next((item for item in graduates_registry if item["id"] == user_id), None)
+def modify_graduate(user_id: int, payload: GraduatePartialUpdate, db: Session = Depends(get_db)):
+    match = db.query(Graduate).filter(Graduate.id == user_id).first()
     if not match:
         raise HTTPException(status_code=404, detail="Graduate record not found.")
     if payload.full_name is not None:
-        match["full_name"] = payload.full_name
+        match.full_name = payload.full_name
     if payload.contact_email is not None:
-        match["contact_email"] = payload.contact_email
+        match.contact_email = payload.contact_email
+    db.commit()
+    db.refresh(match)
     return {"message": "Record partially modified (PATCH)", "data": match}
 
 @router.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["User Management"])
-def purge_graduate(user_id: int):
-    match = next((item for item in graduates_registry if item["id"] == user_id), None)
+def purge_graduate(user_id: int, db: Session = Depends(get_db)):
+    match = db.query(Graduate).filter(Graduate.id == user_id).first()
     if not match:
         raise HTTPException(status_code=404, detail="Graduate record not found.")
-    graduates_registry.remove(match)
+    db.delete(match)
+    db.commit()
     return None
 
-
-from fastapi import Request, Depends
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import Graduate, Announcement, GraduateInput, AnnouncementInput
-
-# HTML şablonları için klasör tanımı (proje kök dizininde templates/ klasörü olmalı)
-templates = Jinja2Templates(directory="templates")
 
 # --- WEB VIEWS (HTML Arayüzleri) ---
 @router.get("/web/graduates", response_class=HTMLResponse, tags=["Web Views"])
@@ -97,7 +109,7 @@ def web_list_announcements(request: Request, db: Session = Depends(get_db)):
 
 
 # --- ANNOUNCEMENTS API (Duyurular Ödevi) ---
-@app_router.get("/api/announcements", response_class=List[AnnouncementProfile], tags=["Announcements"]) # Eğer router kullanıyorsan `@router` olarak ayarla
+@router.get("/api/announcements", response_model=List[AnnouncementProfile], tags=["Announcements"])
 def list_announcements(db: Session = Depends(get_db)):
     return db.query(Announcement).all()
 
