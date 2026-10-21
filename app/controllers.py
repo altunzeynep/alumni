@@ -232,3 +232,19 @@ def seed_job_postings(db: Session = Depends(get_db)):
 def list_job_applications(job_id: int, db: Session = Depends(get_db)):
     applications = db.query(Application).filter(Application.job_posting_id == job_id).all()
     return applications
+
+
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
+
+templates = Jinja2Templates(directory="app/templates")
+
+# --- UI WEB VIEWS (Job Postings & Applications UIs) ---
+@router.get("/ui/job-postings", response_class=HTMLResponse, include_in_schema=False)
+def ui_job_postings(request: Request):
+    return templates.TemplateResponse("job_postings.html", {"request": request})
+
+@router.get("/ui/applications", response_class=HTMLResponse, include_in_schema=False)
+def ui_applications(request: Request):
+    return templates.TemplateResponse("applications.html", {"request": request})
