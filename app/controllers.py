@@ -8,11 +8,14 @@ from app.database import get_db
 from app.models import (
     Graduate, 
     Announcement, 
+    JobPosting,
     GraduateInput, 
     GraduatePartialUpdate, 
     GraduateProfile, 
     AnnouncementInput, 
-    AnnouncementProfile
+    AnnouncementProfile,
+    JobPostingInput,
+    JobPostingProfile
 )
 
 router = APIRouter()
@@ -120,3 +123,112 @@ def create_announcement(payload: AnnouncementInput, db: Session = Depends(get_db
     db.commit()
     db.refresh(new_announcement)
     return {"message": "Announcement created successfully", "data": new_announcement}
+
+
+# --- JOB POSTINGS API (İş İlanları Operasyonları) ---
+@router.get("/api/job-postings", response_model=List[JobPostingProfile], tags=["Job Postings"])
+def list_job_postings(db: Session = Depends(get_db)):
+    return db.query(JobPosting).all()
+
+@router.get("/api/job-postings/{job_id}", response_model=JobPostingProfile, tags=["Job Postings"])
+def fetch_job_posting(job_id: int, db: Session = Depends(get_db)):
+    match = db.query(JobPosting).filter(JobPosting.id == job_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Job posting record not found.")
+    return match
+
+@router.post("/api/job-postings", status_code=status.HTTP_201_CREATED, tags=["Job Postings"])
+def create_job_posting(payload: JobPostingInput, db: Session = Depends(get_db)):
+    new_job = JobPosting(
+        title=payload.title,
+        description=payload.description,
+        company=payload.company,
+        location=payload.location
+    )
+    db.add(new_job)
+    db.commit()
+    db.refresh(new_job)
+    return {"message": "Job posting created successfully", "data": new_job}
+
+@router.delete("/api/job-postings/{job_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Job Postings"])
+def delete_job_posting(job_id: int, db: Session = Depends(get_db)):
+    match = db.query(JobPosting).filter(JobPosting.id == job_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Job posting record not found.")
+    db.delete(match)
+    db.commit()
+    return None
+
+# --- APPLICATIONS API (İş Başvuruları Operasyonları) ---
+@router.get("/api/applications", response_model=List[ApplicationProfile], tags=["Applications"])
+def list_applications(db: Session = Depends(get_db)):
+    return db.query(Application).all()
+
+@router.get("/api/applications/{app_id}", response_model=ApplicationProfile, tags=["Applications"])
+def fetch_application(app_id: int, db: Session = Depends(get_db)):
+    match = db.query(Application).filter(Application.id == app_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Application record not found.")
+    return match
+
+@router.post("/api/applications", status_code=status.HTTP_201_CREATED, tags=["Applications"])
+def create_application(payload: ApplicationInput, db: Session = Depends(get_db)):
+    new_app = Application(
+        job_posting_id=payload.job_posting_id,
+        graduate_id=payload.graduate_id,
+        status=payload.status
+    )
+    db.add(new_app)
+    db.commit()
+    db.refresh(new_app)
+    return {"message": "Application submitted successfully", "data": new_app}
+
+@router.delete("/api/applications/{app_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Applications"])
+def delete_application(app_id: int, db: Session = Depends(get_db)):
+    match = db.query(Application).filter(Application.id == app_id).first()
+    if not match:
+        raise HTTPException(status_code=404, detail="Application record not found.")
+    db.delete(match)
+    db.commit()
+    return None
+
+
+# --- SEED DATA (Test Verileri Ekleme) ---
+@router.post("/api/seed/job-postings", status_code=status.HTTP_201_CREATED, tags=["Job Postings"])
+def seed_job_postings(db: Session = Depends(get_db)):
+    # Eğer tabloda zaten veri varsa tekrar doldurmasın
+    existing_count = db.query(JobPosting).count()
+    if existing_count > 0:
+        return {"message": f"Table already has {existing_count} job postings. No seed needed."}
+
+    sample_jobs = [
+        JobPosting(
+            title="Junior Python Developer",
+            description="En az 1 yıl FastAPI/Django deneyimli, OOP ve PostgreSQL bilen takım arkadaşı arıyoruz.",
+            company="Tech Innovators A.Ş.",
+            location="İstanbul (Hibrit)"
+        ),
+        JobPosting(
+            title="Frontend Web Developer",
+            description="JavaScript, HTML, CSS ve modern framework'lere hakim mezunlar aranıyor.",
+            company="Digital Studio",
+            location="Uzaktan (Remote)"
+        ),
+        JobPosting(
+            title="Data Analyst",
+            description="SQL, Python (Pandas/NumPy) ve veri görselleştirme araçlarında yetkin çalışma arkadaşı.",
+            company="DataCorp Global",
+            location="Ankara"
+        )
+    ]
+
+    db.add_all(sample_jobs)
+    db.commit()
+    return {"message": "Job postings table successfully seeded with sample data!", "count": len(sample_jobs)}
+
+
+# --- NESTED ROUTE: Belirli Bir İlana Ait Başvurular ---
+@router.get("/api/job-postings/{job_id}/applications", response_model=List[ApplicationProfile], tags=["Job Postings", "Applications"])
+def list_job_applications(job_id: int, db: Session = Depends(get_db)):
+    applications = db.query(Application).filter(Application.job_posting_id == job_id).all()
+    return applications
