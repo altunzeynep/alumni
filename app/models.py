@@ -103,3 +103,29 @@ class ApplicationProfile(ApplicationInput):
 
     class Config:
         from_attributes = True
+
+
+
+        # ==================== JOB POSTING ====================
+class JobPosting(Base):
+    __tablename__ = "job_postings"
+    __table_args__ = {'extend_existing': True}
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(120), nullable=False)
+    company = Column(String, nullable=False)
+    city = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=func.now())
+
+class JobPostingInput(BaseModel):
+    title: str
+    company: str
+    city: Optional[str] = None
+    description: Optional[str] = None
+
+class JobPostingPartialUpdate(BaseModel):
+    title: Optional[str] = None
+    company: Optional[str] = None
+    city: Optional[str] = None
+    description: Optional[str] = None

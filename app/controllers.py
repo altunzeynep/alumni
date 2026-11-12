@@ -3,20 +3,36 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import datetime
+from pydantic import BaseModel
 
 from app.database import get_db
 from app.models import (
     Graduate, 
     Announcement, 
     JobPosting,
+    Application,
     GraduateInput, 
     GraduatePartialUpdate, 
     GraduateProfile, 
     AnnouncementInput, 
     AnnouncementProfile,
     JobPostingInput,
-    JobPostingProfile
+    JobPostingProfile,
+    ApplicationInput
 )
+
+# --- Pydantic Şemaları ---
+class ApplicationProfile(BaseModel):
+    id: int
+    job_posting_id: int
+    graduate_id: int
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 
 router = APIRouter()
 
@@ -159,6 +175,7 @@ def delete_job_posting(job_id: int, db: Session = Depends(get_db)):
     db.commit()
     return None
 
+
 # --- APPLICATIONS API (İş Başvuruları Operasyonları) ---
 @router.get("/api/applications", response_model=List[ApplicationProfile], tags=["Applications"])
 def list_applications(db: Session = Depends(get_db)):
@@ -196,7 +213,6 @@ def delete_application(app_id: int, db: Session = Depends(get_db)):
 # --- SEED DATA (Test Verileri Ekleme) ---
 @router.post("/api/seed/job-postings", status_code=status.HTTP_201_CREATED, tags=["Job Postings"])
 def seed_job_postings(db: Session = Depends(get_db)):
-    # Eğer tabloda zaten veri varsa tekrar doldurmasın
     existing_count = db.query(JobPosting).count()
     if existing_count > 0:
         return {"message": f"Table already has {existing_count} job postings. No seed needed."}
@@ -234,12 +250,6 @@ def list_job_applications(job_id: int, db: Session = Depends(get_db)):
     return applications
 
 
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi import Request
-
-templates = Jinja2Templates(directory="app/templates")
-
 # --- UI WEB VIEWS (Job Postings & Applications UIs) ---
 @router.get("/ui/job-postings", response_class=HTMLResponse, include_in_schema=False)
 def ui_job_postings(request: Request):
@@ -248,3 +258,30 @@ def ui_job_postings(request: Request):
 @router.get("/ui/applications", response_class=HTMLResponse, include_in_schema=False)
 def ui_applications(request: Request):
     return templates.TemplateResponse("applications.html", {"request": request})
+
+
+from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.database import get_db
+from app.models import JobPosting, JobPostingInput
+
+# Not: Eğer router tanımı zaten dosyada varsa tekrar tanımlamana gerek yok, sadece endpoint'leri ekle.
+
+@router.post("/api/job-postings", status_code=status.HTTP_201_CREATED)
+def create_job_posting(payload: JobPostingInput, db: Session = Depends(get_db)):
+    # ddd.md kurallarına göre title ve company zorunlu (Pydantic zaten bunu denetliyor)
+    new_posting = JobPosting(
+        title=payload.title,
+        company=payload.company,
+        city=payload.city,
+        description=payload.description
+    )
+    db.add(new_posting)
+    db.commit()
+    db.refresh(new_posting)
+    return {"message": "İş ilanı başarıyla oluşturuldu.", "data": new_posting}
+
+@router.get("/api/job-postings")
+def list_job_postings(db: Session = Depends(get_db)):
+    postings = db.query(JobPosting).all()
+    return postings

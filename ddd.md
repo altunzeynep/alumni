@@ -24,3 +24,9 @@ Mezunların birbirleriyle iş imkanlarını paylaşabilmesi ve kariyer ağını 
 #### İlişkiler ve Domain Kuralları:
 * Her ilan bir sisteme kaydedilir ve tüm mezunlar tarafından görüntülenebilir.
 * İlanlar üzerinden mezunlar arası kariyer desteği ve yönlendirme sağlanması hedeflenir.
+
+### JobPosting Rules
+- **title**: Zorunlu (required) ve maksimum 120 karakter olmalı.
+- **company**: Zorunlu (required).
+- **city**: Opsiyonel.
+- **description**: Opsiyonel.
