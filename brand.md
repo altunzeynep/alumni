@@ -1,0 +1,1 @@
+# Marka Kimliği ve Tasarım Rehberi\n\nBu dosya projenin görsel ve konsept kimliğini tanımlar.

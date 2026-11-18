@@ -58,14 +58,11 @@ class JobPosting(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255), nullable=False, index=True)
+    title = Column(String(120), nullable=False)
     description = Column(Text, nullable=False)
     company = Column(String(100), nullable=False)
     location = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    
-    # İsteğe bağlı: İlanı oluşturan mezun ile ilişki (Foreign Key)
-    # graduate_id = Column(Integer, ForeignKey("graduates.id"), nullable=True)
 
 class JobPostingInput(BaseModel):
     title: str

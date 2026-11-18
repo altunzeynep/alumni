@@ -125,3 +125,10 @@ Bu aşamada projeye kurumsal ve güvenli bir altyapı kazandırmak için şu mod
 - **Logger Middleware:** Gelen isteklerin süresini, metodunu, yolunu ve durum kodunu hem terminale yazar hem de `logs/error.logs` dosyasına kaydeder.
 - **404 & 5xx Guardian:** Bulunamayan sayfalar (`404`) için özel tasarlanmış şık bir HTML hata sayfası döner; sunucu içi beklenmeyen hataları (`500`) güvenli bir şekilde yakalar.
 - **Yerel Swagger Entegrasyonu:** Dışa bağımlılığı ortadan kaldıran güvenli ve yerel CDN tabanlı Swagger UI route'u entegre edildi.
+
+
+[Marka ve Tasarım Rehberi için tıklayın](./brand.md)
+
+## 📚 Dokümantasyon ve Rehberler
+- [Marka Kimliği (Brand)](./brand.md)[cite: 10]
+- [Tasarım ve Stil Rehberi (Design)](./DESIGN.MD)[cite: 10]

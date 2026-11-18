@@ -1,2 +1,21 @@
 [2026-11-12 22:02:16] ERROR GET /olmayan-bir-sayfa - unhashable type: 'dict'
 [2026-11-12 22:02:23] ERROR GET /olmayan-bir-sayfa - unhashable type: 'dict'
+[2026-11-18 20:27:46] ERROR GET /web/job-postings - (psycopg2.OperationalError) could not translate host name "postgres" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+[2026-11-18 20:29:29] ERROR GET /web/job-postings - (psycopg2.OperationalError) could not translate host name "postgres" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+[2026-11-18 20:29:38] ERROR GET /web/job-postings - (psycopg2.OperationalError) could not translate host name "postgres" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+[2026-11-18 20:31:27] ERROR GET /web/job-postings - (psycopg2.OperationalError) could not translate host name "postgres" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+[2026-11-18 20:33:37] ERROR GET /web/job-postings - (psycopg2.OperationalError) connection to server at "localhost" (::1), port 5432 failed: FATAL:  password authentication failed for user "postgres"
+
+(Background on this error at: https://sqlalche.me/e/21/e3q8)
+[2026-11-18 20:42:42] ERROR GET /web/job-postings - unhashable type: 'dict'
+[2026-11-18 20:42:43] ERROR GET /web/job-postings - unhashable type: 'dict'
+[2026-11-18 20:43:52] ERROR GET /web/job-postings - unhashable type: 'dict'
+[2026-11-18 20:43:53] ERROR GET /web/job-postings - unhashable type: 'dict'

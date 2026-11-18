@@ -126,6 +126,16 @@ def web_list_announcements(request: Request, db: Session = Depends(get_db)):
     announcements = db.query(Announcement).all()
     return templates.TemplateResponse("announcements.html", {"request": request, "announcements": announcements})
 
+@router.get("/web/job-postings", response_class=HTMLResponse, tags=["Web Views", "Job Postings"])
+def web_job_postings(request: Request, db: Session = Depends(get_db)):
+    postings = db.query(JobPosting).all()
+    # Starlette sürüm uyumluluğu için context parametresi adıyla veya doğrudan veriyoruz:
+    return templates.TemplateResponse(
+        request=request, 
+        name="job_postings.html", 
+        context={"postings": postings}
+    )
+
 
 # --- ANNOUNCEMENTS API (Duyurular Ödevi) ---
 @router.get("/api/announcements", response_model=List[AnnouncementProfile], tags=["Announcements"])
@@ -157,14 +167,14 @@ def fetch_job_posting(job_id: int, db: Session = Depends(get_db)):
 def create_job_posting(payload: JobPostingInput, db: Session = Depends(get_db)):
     new_job = JobPosting(
         title=payload.title,
-        description=payload.description,
         company=payload.company,
-        location=payload.location
+        city=getattr(payload, 'city', getattr(payload, 'location', None)),
+        description=payload.description
     )
     db.add(new_job)
     db.commit()
     db.refresh(new_job)
-    return {"message": "Job posting created successfully", "data": new_job}
+    return {"message": "İş ilanı başarıyla oluşturuldu.", "data": new_job}
 
 @router.delete("/api/job-postings/{job_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Job Postings"])
 def delete_job_posting(job_id: int, db: Session = Depends(get_db)):
@@ -258,30 +268,3 @@ def ui_job_postings(request: Request):
 @router.get("/ui/applications", response_class=HTMLResponse, include_in_schema=False)
 def ui_applications(request: Request):
     return templates.TemplateResponse("applications.html", {"request": request})
-
-
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException, status
-from app.database import get_db
-from app.models import JobPosting, JobPostingInput
-
-# Not: Eğer router tanımı zaten dosyada varsa tekrar tanımlamana gerek yok, sadece endpoint'leri ekle.
-
-@router.post("/api/job-postings", status_code=status.HTTP_201_CREATED)
-def create_job_posting(payload: JobPostingInput, db: Session = Depends(get_db)):
-    # ddd.md kurallarına göre title ve company zorunlu (Pydantic zaten bunu denetliyor)
-    new_posting = JobPosting(
-        title=payload.title,
-        company=payload.company,
-        city=payload.city,
-        description=payload.description
-    )
-    db.add(new_posting)
-    db.commit()
-    db.refresh(new_posting)
-    return {"message": "İş ilanı başarıyla oluşturuldu.", "data": new_posting}
-
-@router.get("/api/job-postings")
-def list_job_postings(db: Session = Depends(get_db)):
-    postings = db.query(JobPosting).all()
-    return postings

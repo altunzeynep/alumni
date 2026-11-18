@@ -3,16 +3,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Veritabanı URL'si (.env'den veya varsayılan olarak)
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:password@postgres:5432/alumni_db")
-# Engine tanımı (Eksik olan kısım burası!)
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Yerel ve hatasız SQLite veritabanı bağlantısı
+SQLALCHEMY_DATABASE_URL = "sqlite:///./alumni.db"
+
+# Engine tanımı (check_same_thread SQLite için gereklidir)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
 
 # SessionLocal tanımı
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-
 
 # Veritabanı oturumunu yöneten get_db fonksiyonu
 def get_db():

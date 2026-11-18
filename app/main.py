@@ -5,15 +5,21 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse, HTMLResponse
 from app.controllers import router
+from app.database import engine, Base
+from app.models import *
 
+# Tabloların veritabanında var olduğundan emin oluyoruz
+Base.metadata.create_all(bind=engine)
+
+# FastAPI Uygulama Tanımı (Uvicorn'un aradığı 'app' objesi burada)
 app = FastAPI(
     title="Zeynep Altun - Alumni Tracking MVC API",
     version="4.0.0",
-    docs_url=None,  # Varsayılan dışa bağımlı Swagger'ı kapatıyoruz
+    docs_url=None,
     redoc_url=None
 )
 
-# --- 1. Logger Middleware (Logları terminale ve logs/error.logs dosyasına yazar) ---
+# --- 1. Logger Middleware ---
 os.makedirs("logs", exist_ok=True)
 
 @app.middleware("http")
@@ -37,7 +43,7 @@ async def logger_middleware(request: Request, call_next):
             f.write(error_line)
         raise exc
 
-# --- 2. 404 Guardian Middleware (Bulunamayan rotalar için şık HTML 404 sayfası) ---
+# --- 2. 404 Guardian Middleware ---
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, exc: HTTPException):
     html_content = """
@@ -63,14 +69,14 @@ async def custom_404_handler(request: Request, exc: HTTPException):
     """
     return HTMLResponse(content=html_content, status_code=404)
 
-# --- 3. 5xx Guardian Middleware (Sunucu hatalarını yakalama) ---
+# --- 3. 5xx Guardian Middleware ---
 @app.exception_handler(Exception)
 async def custom_5xx_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={
             "error": "Internal Server Error",
-            "message": "Sunucu tarafinda beklenmeyen bir hata olustu. Lutfen daha sonra tekrar deneyin.",
+            "message": "Sunucu tarafında beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
             "path": str(request.url)
         }
     )
